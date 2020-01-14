@@ -17,9 +17,9 @@ namespace SecretSanta.Business.Tests
             var otherUser = new User(2, "", "", new List<Gift>());
             var expectedGifts = new List<Gift>
             {
-                new Gift(1, "", "", new Uri(""), otherUser),
-                new Gift(2, "", "", new Uri(""), otherUser),
-                new Gift(3, "", "", new Uri(""), otherUser)
+                new Gift(1, "", "", new Uri("http://www.fakeurl.com"), otherUser),
+                new Gift(2, "", "", new Uri("http://www.fakeurl.com"), otherUser),
+                new Gift(3, "", "", new Uri("http://www.fakeurl.com"), otherUser)
             };
 
             var user = new User(expectedInt, expectedString, expectedString, expectedGifts);

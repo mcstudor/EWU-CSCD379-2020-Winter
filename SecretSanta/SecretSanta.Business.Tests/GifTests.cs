@@ -12,7 +12,7 @@ namespace SecretSanta.Business.Tests
         {
 
             const int expectedInt = 0001;
-            Uri expectedUrl = new Uri("fakeUrl");
+            Uri expectedUrl = new Uri("http://www.fakeurl.com");
             const string expectedString = "Test String";
             var expectedUser = new User(id: 0, firstName: "", lastName: "", gifts: new List<Gift>());
             var gift = new Gift(id: expectedInt, 
