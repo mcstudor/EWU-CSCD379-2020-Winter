@@ -5,7 +5,11 @@ using Microsoft.Extensions.Hosting;
 
 namespace SecretSanta.Api
 {
-    public class Startup
+    
+#pragma warning disable CA1052 // Static holder types should be Static or NotInheritable
+    //Startup cannot be made static
+    public class Startup 
+#pragma warning restore CA1052 // Static holder types should be Static or NotInheritable
     {
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
@@ -14,7 +18,7 @@ namespace SecretSanta.Api
         //}
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public static void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -27,7 +31,9 @@ namespace SecretSanta.Api
             {
                 endpoints.MapGet("/", async context =>
                 {
+                    #pragma warning disable CA2007 // Not using async for Assignment 1
                     await context.Response.WriteAsync("Hello from API!");
+                    #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
                 });
             });
         }

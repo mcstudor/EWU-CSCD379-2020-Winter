@@ -1,14 +1,18 @@
-﻿namespace SecretSanta.Business
+﻿using System;
+
+namespace SecretSanta.Business
 {
     public class Gift
     {
         public int Id { get; }
-        public string Title { get; }
-        public string Description { get; }
-        public string Url { get; }
-        public User User { get; }
+        public string Title { get; set; }
+        public string Description { get; set; }
 
-        public Gift(in int id, string title, string description, string url, User user)
+        public Uri Url { get; set; }
+
+        public User User { get; set;  }
+
+        public Gift(in int id, string title, string description, Uri url, User user)
         {
             Id = id;
             Title = title;

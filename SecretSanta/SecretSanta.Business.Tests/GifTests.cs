@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 
@@ -11,12 +12,13 @@ namespace SecretSanta.Business.Tests
         {
 
             const int expectedInt = 0001;
+            Uri expectedUrl = new Uri("fakeUrl");
             const string expectedString = "Test String";
-            var expectedUser = new User(userId: 0, firstName: "", lastName: "", gifts: new List<Gift>());
+            var expectedUser = new User(id: 0, firstName: "", lastName: "", gifts: new List<Gift>());
             var gift = new Gift(id: expectedInt, 
                             title: expectedString, 
                             description: expectedString, 
-                            url: expectedString, 
+                            url: expectedUrl, 
                                 user: expectedUser);
 
             foreach (var property in typeof(Gift).GetProperties())
@@ -31,6 +33,9 @@ namespace SecretSanta.Business.Tests
                         break;
                     case User actualUser:
                         Assert.AreEqual(expected: expectedUser, actual: actualUser);
+                        break;
+                    case Uri actualUri:
+                        Assert.AreEqual(expected: expectedUrl, actual: actualUri);
                         break;
                 }
             }
