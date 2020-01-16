@@ -2,7 +2,7 @@ using NUnit.Framework;
 
 namespace SecretSanta.Api.Tests
 {
-    public class Tests
+    public class PlaceHolderTests
     {
 
         [Test]

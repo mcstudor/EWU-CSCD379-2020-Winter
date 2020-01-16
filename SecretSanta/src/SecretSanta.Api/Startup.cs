@@ -31,9 +31,7 @@ namespace SecretSanta.Api
             {
                 endpoints.MapGet("/", async context =>
                 {
-                    #pragma warning disable CA2007 // Not using async for Assignment 1
                     await context.Response.WriteAsync("Hello from API!");
-                    #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
                 });
             });
         }
