@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SecretSanta.Data
 {
-    public class User : EntityBase
+    public class User : FingerPrintEntityBase
     {
         public string FirstName { get => _FirstName; set => _FirstName = value ?? throw new ArgumentNullException(nameof(FirstName)); }
         private string _FirstName = string.Empty;

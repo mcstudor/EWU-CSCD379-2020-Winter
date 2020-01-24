@@ -1,11 +1,14 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace SecretSanta.Data.Tests
 {
     [TestClass]
-    public class GiftTests
+    public class GiftTests : TestBase
     {
         [TestMethod]
         public void Gift_CanBeCreate_AllPropertiesGetSet()
@@ -67,6 +70,29 @@ namespace SecretSanta.Data.Tests
                 User =
                     new User {Id = 1, FirstName = "Inigo", LastName = "Montoya", Gifts = new List<Gift>()}
             };
+        }
+
+        [TestMethod]
+        public async Task AddGift_WithUser_ShouldCreateForeignRelationship()
+        {
+            var user = SampleData.CreateCheeseBurgerUser();
+            var gift = SampleData.CreateCheeseBurgerGift();
+            gift.User = user;
+
+            using (ApplicationDbContext dbContext = new ApplicationDbContext(Options))
+            {
+                gift.User = user;
+                dbContext.Gifts.Add(gift);
+                await dbContext.SaveChangesAsync();
+            }
+
+            using (ApplicationDbContext dbContext = new ApplicationDbContext(Options))
+            {
+                var gifts = await dbContext.Gifts.Include(u => u.User).ToListAsync();
+                Assert.AreEqual(1, gifts.Count);
+                Assert.AreEqual(gift.Title, gifts.First().Title);
+                Assert.IsNotNull(gifts.First().User);
+            }
         }
     }
 }
