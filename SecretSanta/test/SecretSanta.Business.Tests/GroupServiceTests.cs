@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecretSanta.Data;
+using SecretSanta.Data.Tests;
 
 namespace SecretSanta.Business.Tests
 {

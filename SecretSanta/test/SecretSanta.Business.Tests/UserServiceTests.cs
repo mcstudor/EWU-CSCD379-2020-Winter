@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using SecretSanta.Data;
+using SecretSanta.Data.Tests;
 
 namespace SecretSanta.Business.Tests
 {

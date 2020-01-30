@@ -1,7 +1,7 @@
 ﻿
 using SecretSanta.Data;
 
-namespace SecretSanta.Business.Tests
+namespace SecretSanta.Data.Tests
 {
     public static class SampleData
     {
@@ -22,21 +22,11 @@ namespace SecretSanta.Business.Tests
         public const string FastFoodTitle = "Fast Food";
 
 
-        public static Gift CreateCheeseBurgerGift() => new Gift
-        {
-            Title = CheeseBurgerTitle,
-            Description = CheeseBurgerDescription,
-            Url = CheeseBurgerUrl,
-            User = CreateCheeseBurgerUser()
-        };
+        public static Gift CreateCheeseBurgerGift() =>
+            new Gift(CheeseBurgerTitle, CheeseBurgerDescription, CheeseBurgerUrl, CreateChickenUser());
 
-        public static Gift CreateChickenGift() => new Gift
-        {
-            Title = ChickenTitle,
-            Description = ChickenDescription,
-            Url = ChickenUrl,
-            User = CreateChickenUser()
-        };
+        public static Gift CreateChickenGift() =>
+            new Gift(ChickenTitle, ChickenDescription, CheeseBurgerUrl, CreateCheeseBurgerUser());
 
         public static Group CreateFastFoodGroup() => new Group(FastFoodTitle);
 

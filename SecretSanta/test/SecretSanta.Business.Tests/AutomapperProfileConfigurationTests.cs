@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecretSanta.Data;
+using SecretSanta.Data.Tests;
 
 namespace SecretSanta.Business.Tests
 {
@@ -29,12 +30,10 @@ namespace SecretSanta.Business.Tests
 
         class MockGift : Gift
         {
-            public MockGift(int id, string title, string description, string url)
+            public MockGift(int id, string title, string description, string url, User user)
+                : base(title,description,url, user)
             {
                 base.Id = id;
-                base.Title = title;
-                base.Description = description;
-                base.Url = url;
             }
         }
 
@@ -65,7 +64,8 @@ namespace SecretSanta.Business.Tests
             Gift source = new MockGift(42,
                 SampleData.CheeseBurgerTitle,
                 SampleData.CheeseBurgerDescription,
-                SampleData.CheeseBurgerUrl);
+                SampleData.CheeseBurgerUrl,
+                SampleData.CreateChickenUser());
             Gift target = _Mapper.Map<Gift>(source);
             Assert.AreNotEqual(source.Id, target.Id);
             Assert.AreEqual((source.Title, source.Description, source.Url),
