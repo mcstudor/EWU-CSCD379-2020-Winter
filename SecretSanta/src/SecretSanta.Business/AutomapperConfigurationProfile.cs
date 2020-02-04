@@ -8,8 +8,13 @@ namespace SecretSanta.Business
     {
         public AutomapperConfigurationProfile()
         {
-            CreateMap<Gift, Gift>().ForMember(property => property.Id, option => option.Ignore());
-            CreateMap<User, User>().ForMember(property => property.Id, option => option.Ignore());
+            CreateMap<EntityBase, EntityBase>()
+                .ForMember(property => property.Id, option => option.Ignore());
+            CreateMap<FingerPrintEntityBase, FingerPrintEntityBase>()
+                .ForMember(property => property.CreatedBy, option => option.Ignore())
+                .IncludeBase<EntityBase, EntityBase>();
+            CreateMap<Gift, Gift>().IncludeBase<FingerPrintEntityBase, FingerPrintEntityBase>();
+            CreateMap<User, User>().IncludeBase<FingerPrintEntityBase, FingerPrintEntityBase>();
         }
 
         public static IMapper CreateMapper()
