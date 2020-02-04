@@ -34,3 +34,7 @@ For this assignment you will be setting up the SecretSanta.Api project.
 * [Controller action return types in ASP.NET Core web API](https://docs.microsoft.com/aspnet/core/web-api/action-return-types)
 * [Get started with NSwag and ASP.NET Core](https://docs.microsoft.com/aspnet/core/tutorials/getting-started-with-nswag)
 * [Move database initialization code](https://docs.microsoft.com/en-us/aspnet/core/migration/1x-to-2x/?view=aspnetcore-3.1#move-database-initialization-code)
+
+## Build Status
+
+[![Build Status](https://dev.azure.com/mcstudor/CSCD379-2020-Winter/_apis/build/status/mcstudor.EWU-CSCD379-2020-Winter?branchName=Assignment4)](https://dev.azure.com/mcstudor/CSCD379-2020-Winter/_build/latest?definitionId=1&branchName=Assignment4)
