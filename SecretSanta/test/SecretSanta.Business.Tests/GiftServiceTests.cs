@@ -32,7 +32,6 @@ namespace SecretSanta.Business.Tests
                 Title = Guid.NewGuid().ToString(),
                 Description = Guid.NewGuid().ToString(),
                 Url = Guid.NewGuid().ToString(),
-                UserId = 1 //From the user we inserted in the initialize
             };
         }
 

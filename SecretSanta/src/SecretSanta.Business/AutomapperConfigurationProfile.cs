@@ -1,6 +1,9 @@
 ﻿using AutoMapper;
-using SecretSanta.Data;
 using System.Reflection;
+using SecretSanta.Business.Dto;
+using Gift = SecretSanta.Data.Gift;
+using User = SecretSanta.Data.User;
+using Group = SecretSanta.Data.Group;
 
 namespace SecretSanta.Business
 {
@@ -8,8 +11,14 @@ namespace SecretSanta.Business
     {
         public AutomapperConfigurationProfile()
         {
-            CreateMap<Gift, Gift>().ForMember(property => property.Id, option => option.Ignore());
-            CreateMap<User, User>().ForMember(property => property.Id, option => option.Ignore());
+            CreateMap<Gift, Dto.Gift>();
+            CreateMap<GiftInput, Gift>();
+
+            CreateMap<User, Dto.User>();
+            CreateMap<UserInput, User>();
+
+            CreateMap<Group, Dto.Group>();
+            CreateMap<GroupInput, Group>();
         }
 
         public static IMapper CreateMapper()

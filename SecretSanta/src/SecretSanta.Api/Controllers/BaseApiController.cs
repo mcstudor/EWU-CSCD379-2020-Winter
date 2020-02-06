@@ -5,20 +5,24 @@ using SecretSanta.Data;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using SecretSanta.Business.Dto;
+using SecretSanta.Business.Services;
 
 namespace SecretSanta.Api.Controllers
 {
-    public abstract class BaseApiController<TEntity> : ControllerBase where TEntity : EntityBase
+    public abstract class BaseApiController<TDto, TInput> : ControllerBase 
+        where TInput : class
+        where TDto: class, TInput, IEntity
     {
-        protected IEntityService<TEntity> Service { get; }
+        protected IEntityService<TDto,TInput> Service { get; }
 
-        protected BaseApiController(IEntityService<TEntity> service)
+        protected BaseApiController(IEntityService<TDto, TInput> service)
         {
             Service = service ?? throw new ArgumentNullException(nameof(service));
         }
 
        [HttpGet]
-        public async Task<IEnumerable<TEntity>> Get() => await Service.FetchAllAsync();
+        public async Task<IEnumerable<TDto>> Get() => await Service.FetchAllAsync();
 
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -26,7 +30,7 @@ namespace SecretSanta.Api.Controllers
         [ProducesDefaultResponseType]
         public async Task<IActionResult> Get(int id)
         {
-            TEntity entity = await Service.FetchByIdAsync(id);
+            TDto entity = await Service.FetchByIdAsync(id);
             if (entity is null)
             {
                 return NotFound();
@@ -35,15 +39,15 @@ namespace SecretSanta.Api.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<TEntity?> Put(int id, [FromBody] TEntity value)
+        public async Task<TDto?> Put(int id, [FromBody] TInput value)
         {
             return await Service.UpdateAsync(id, value);
         }
 
         [HttpPost]
-        public async Task<TEntity> Post(TEntity entity)
+        public async Task<TDto> Post(TInput value)
         {
-            return await Service.InsertAsync(entity);
+            return await Service.InsertAsync(value);
         }
 
         [HttpDelete("{id}")]

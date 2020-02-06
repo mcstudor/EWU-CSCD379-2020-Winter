@@ -1,23 +1,26 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecretSanta.Api.Controllers;
-using SecretSanta.Business;
-using SecretSanta.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Moq;
+using SecretSanta.Business.Dto;
+using SecretSanta.Business.Services;
 
 namespace SecretSanta.Api.Tests.Controllers
 {
     [TestClass]
-    public abstract class BaseApiControllerTests<TEntity, TService> 
-        where TEntity : EntityBase
-        where TService : InMemoryEntityService<TEntity>, new()
+    public abstract class BaseApiControllerTests<TDto, TInputDto, TService>
+        where TInputDto : class
+        where TDto : class, TInputDto, IEntity
+        where TService : class, IEntityService<TDto, TInputDto>
     {
-        protected abstract BaseApiController<TEntity> CreateController(TService service);
+        protected abstract BaseApiController<TDto, TInputDto> CreateController(TService service);
 
-        protected abstract TEntity CreateEntity();
+        protected abstract TDto CreateDto();
+        protected abstract TInputDto CreateInput();
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
@@ -29,23 +32,28 @@ namespace SecretSanta.Api.Tests.Controllers
         [TestMethod]
         public async Task Get_FetchesAllItems()
         {
-            TService service = new TService();
-            service.Items.Add(CreateEntity());
-            service.Items.Add(CreateEntity());
-            service.Items.Add(CreateEntity());
+            Mock<TService> service = new Mock<TService>();
+            List<TDto> expected = new List<TDto>
+            {
+                CreateDto(), 
+                CreateDto(), 
+                CreateDto()
+            };
+            service.Setup(svs => svs.FetchAllAsync()).ReturnsAsync(expected);
 
-            BaseApiController<TEntity> controller = CreateController(service);
+            BaseApiController<TDto, TInputDto> controller = CreateController(service.Object);
 
-            IEnumerable<TEntity> items = await controller.Get();
+            IEnumerable<TDto> actual = await controller.Get();
 
-            CollectionAssert.AreEqual(service.Items.ToList(), items.ToList());
+            CollectionAssert.AreEqual(expected, actual.ToList());
         }
 
         [TestMethod]
         public async Task Get_WhenEntityDoesNotExist_ReturnsNotFound()
         {
-            TService service = new TService();
-            BaseApiController<TEntity> controller = CreateController(service);
+            Mock<TService> service = new Mock<TService>();
+
+            BaseApiController<TDto, TInputDto> controller = CreateController(service.Object);
 
             IActionResult result = await controller.Get(1);
 
@@ -56,10 +64,12 @@ namespace SecretSanta.Api.Tests.Controllers
         [TestMethod]
         public async Task Get_WhenEntityExists_ReturnsItem()
         {
-            TService service = new TService();
-            TEntity entity = CreateEntity();
-            service.Items.Add(entity);
-            BaseApiController<TEntity> controller = CreateController(service);
+            Mock<TService> service = new Mock<TService>();
+            TDto entity = CreateDto();
+
+            service.Setup(svs => svs.FetchByIdAsync(entity.Id)).ReturnsAsync(entity);
+
+            BaseApiController<TDto, TInputDto> controller = CreateController(service.Object);
 
             IActionResult result = await controller.Get(entity.Id);
 
@@ -71,36 +81,41 @@ namespace SecretSanta.Api.Tests.Controllers
         [TestMethod]
         public async Task Put_UpdatesItem()
         {
-            TService service = new TService();
-            TEntity entity1 = CreateEntity();
-            service.Items.Add(entity1);
-            TEntity entity2 = CreateEntity();
-            BaseApiController<TEntity> controller = CreateController(service);
+            Mock<TService> service = new Mock<TService>();
+            TDto dto = CreateDto();
+            TInputDto input = CreateInput();
+            service.Setup(svs => svs.UpdateAsync(dto.Id, input)).ReturnsAsync(dto);
 
-            TEntity? result = await controller.Put(entity1.Id, entity2);
+            BaseApiController<TDto, TInputDto> controller = CreateController(service.Object);
 
-            Assert.AreEqual(entity2, result);
-            Assert.AreEqual(entity2, service.Items.Single());
+            TDto? result = await controller.Put(dto.Id, input);
+
+            Assert.AreEqual(dto, result);
         }
 
         [TestMethod]
         public async Task Post_InsertsItem()
         {
-            TService service = new TService();
-            TEntity entity = CreateEntity();
-            BaseApiController<TEntity> controller = CreateController(service);
+            Mock<TService> service = new Mock<TService>();
+            TInputDto entity = CreateInput();
+            TInputDto actual = null!;
+            service.Setup(svs => svs.InsertAsync(entity))
+                    .Callback((TInputDto i) => actual = i);
+            BaseApiController<TDto, TInputDto> controller = CreateController(service.Object);
 
-            TEntity? result = await controller.Post(entity);
+            TDto? result = await controller.Post(entity);
 
-            Assert.AreEqual(entity, result);
-            Assert.AreEqual(entity, service.Items.Single());
+            Assert.IsNotNull(actual);
+            Assert.AreEqual(entity, actual);
         }
 
         [TestMethod]
         public async Task Delete_WhenItemDoesNotExist_ReturnsNotFound()
         {
-            TService service = new TService();
-            BaseApiController<TEntity> controller = CreateController(service);
+            Mock<TService> service = new Mock<TService>();
+            service.Setup(svs => svs.DeleteAsync(1)).ReturnsAsync(false);
+            BaseApiController<TDto, TInputDto> controller = CreateController(service.Object);
+            
 
             IActionResult result = await controller.Delete(1);
 
@@ -110,60 +125,20 @@ namespace SecretSanta.Api.Tests.Controllers
         [TestMethod]
         public async Task Delete_WhenItemExists_ReturnsOk()
         {
-            TService service = new TService();
-            TEntity entity = CreateEntity();
-            service.Items.Add(entity);
-            BaseApiController<TEntity> controller = CreateController(service);
+            Mock<TService> service = new Mock<TService>();
+            int entityId = 1;
+            service.Setup(svs => svs.DeleteAsync(entityId)).ReturnsAsync(true);
+            BaseApiController<TDto, TInputDto> controller = CreateController(service.Object);
 
-            IActionResult result = await controller.Delete(entity.Id);
+            IActionResult result = await controller.Delete(entityId);
 
             Assert.IsTrue(result is OkResult);
         }
 
-        private class ThrowingController : BaseApiController<TEntity>
+        private class ThrowingController : BaseApiController<TDto, TInputDto>
         {
             public ThrowingController() : base(null!)
             { }
-        }
-    }
-
-    public class InMemoryEntityService<TEntity> : IEntityService<TEntity> where TEntity : EntityBase
-    {
-        public IList<TEntity> Items { get; } = new List<TEntity>();
-
-        public Task<bool> DeleteAsync(int id)
-        {
-            if (Items.FirstOrDefault(x => x.Id == id) is { } found)
-            {
-                return Task.FromResult(Items.Remove(found));
-            }
-            return Task.FromResult(false);
-        }
-
-        public Task<List<TEntity>> FetchAllAsync()
-        {
-            return Task.FromResult(Items.ToList());
-        }
-
-        public Task<TEntity> FetchByIdAsync(int id)
-        {
-            return Task.FromResult(Items.FirstOrDefault(x => x.Id == id));
-        }
-
-        public Task<TEntity> InsertAsync(TEntity entity)
-        {
-            Items.Add(entity);
-            return Task.FromResult(entity);
-        }
-
-        public Task<TEntity?> UpdateAsync(int id, TEntity entity)
-        {
-            if (Items.FirstOrDefault(x => x.Id == id) is { } found)
-            {
-                Items[Items.IndexOf(found)] = entity;
-                return Task.FromResult<TEntity?>(entity);
-            }
-            return Task.FromResult(default(TEntity));
         }
     }
 }
