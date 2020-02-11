@@ -1,4 +1,6 @@
-﻿namespace SecretSanta.Business.Dto
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace SecretSanta.Business.Dto
 {
     public class Gift : GiftInput, IEntity
     {
@@ -7,9 +9,13 @@
 
     public class GiftInput
     {
+        [Required]
         public string? Title { get; set; }
+        [Required]
         public string? Description { get; set; }
+        [Required]
         public string? Url { get; set; }
-        public UserInput? User { get; set; }
+        [Required]
+        public int? UserId { get; set; }
     }
 }

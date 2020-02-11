@@ -4,23 +4,58 @@ using SecretSanta.Api.Controllers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Moq;
 using SecretSanta.Business.Dto;
 using SecretSanta.Business.Services;
+using SecretSanta.Data;
 
 namespace SecretSanta.Api.Tests.Controllers
 {
     [TestClass]
-    public abstract class BaseApiControllerTests<TDto, TInputDto, TService>
+    public abstract class BaseApiControllerTests<TDto, TInputDto, TEntity>
         where TInputDto : class
         where TDto : class, TInputDto, IEntity
-        where TService : class, IEntityService<TDto, TInputDto>
+        where TEntity : Data.EntityBase
     {
-        protected abstract BaseApiController<TDto, TInputDto> CreateController(TService service);
+        // Initialized in startup
+#pragma warning disable CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+        protected SecretSantaWebApplicationFactory Factory { get; set; }
+        protected HttpClient Client { get; set; }
+#pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
+
 
         protected abstract TDto CreateDto();
         protected abstract TInputDto CreateInput();
+        protected abstract TInputDto CreateInput(TEntity entity);
+        protected abstract TEntity CreateEntity();
+        protected abstract Uri BaseUrl();
+        protected abstract void AddEntity(ApplicationDbContext context, TEntity entity);
+        protected abstract void AssertAreEqual(TDto dto, TEntity entity);
+        protected abstract void AssertAreEqual(TDto dto, TInputDto input);
+        protected abstract void AssertAreEqual(TInputDto input, TEntity entity);
+
+
+        [TestInitialize]
+        public void TestSetup()
+        {
+            Factory = new SecretSantaWebApplicationFactory();
+
+            using ApplicationDbContext context = Factory.GetDbContext();
+            context.Database.EnsureCreated();
+
+            Client = Factory.CreateClient();
+        }
+
+        [TestCleanup]
+        public void TestCleanup()
+        {
+            Factory.Dispose();
+        }
+
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentNullException))]
@@ -32,107 +67,114 @@ namespace SecretSanta.Api.Tests.Controllers
         [TestMethod]
         public async Task Get_FetchesAllItems()
         {
-            Mock<TService> service = new Mock<TService>();
-            List<TDto> expected = new List<TDto>
+            using ApplicationDbContext context = Factory.GetDbContext();
+            var expected = CreateEntity();
+            AddEntity(context, expected);
+
+            HttpResponseMessage response = await Client.GetAsync(BaseUrl());
+            response.EnsureSuccessStatusCode();
+            string jsonData = await response.Content.ReadAsStringAsync();
+            TDto[] actual = JsonSerializer.Deserialize<TDto[]>(jsonData, new JsonSerializerOptions
             {
-                CreateDto(), 
-                CreateDto(), 
-                CreateDto()
-            };
-            service.Setup(svs => svs.FetchAllAsync()).ReturnsAsync(expected);
-
-            BaseApiController<TDto, TInputDto> controller = CreateController(service.Object);
-
-            IEnumerable<TDto> actual = await controller.Get();
-
-            CollectionAssert.AreEqual(expected, actual.ToList());
+                PropertyNameCaseInsensitive = true
+            });
+            AssertAreEqual(actual.First(), expected);
         }
 
         [TestMethod]
-        public async Task Get_WhenEntityDoesNotExist_ReturnsNotFound()
+        public async Task Get_WhenEntityDoesNotExist_ReturnsEmptyList()
         {
-            Mock<TService> service = new Mock<TService>();
-
-            BaseApiController<TDto, TInputDto> controller = CreateController(service.Object);
-
-            IActionResult result = await controller.Get(1);
-
-            Assert.IsTrue(result is NotFoundResult);
+            HttpResponseMessage response = await Client.GetAsync(BaseUrl());
+            response.EnsureSuccessStatusCode();
+            string jsonData = await response.Content.ReadAsStringAsync();
+            TDto[] actual = JsonSerializer.Deserialize<TDto[]>(jsonData, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+            Assert.IsFalse(actual.Any());
         }
 
 
         [TestMethod]
         public async Task Get_WhenEntityExists_ReturnsItem()
         {
-            Mock<TService> service = new Mock<TService>();
-            TDto entity = CreateDto();
-
-            service.Setup(svs => svs.FetchByIdAsync(entity.Id)).ReturnsAsync(entity);
-
-            BaseApiController<TDto, TInputDto> controller = CreateController(service.Object);
-
-            IActionResult result = await controller.Get(entity.Id);
-
-            var okResult = result as OkObjectResult;
-            
-            Assert.AreEqual(entity, okResult?.Value);
+            using ApplicationDbContext context = Factory.GetDbContext();
+            var expected = CreateEntity();
+            AddEntity(context, expected);
+            Uri url = new Uri($"{BaseUrl().OriginalString}/{expected.Id}");
+            HttpResponseMessage response = await Client.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+            string jsonData = await response.Content.ReadAsStringAsync();
+            TDto actual = JsonSerializer.Deserialize<TDto>(jsonData, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+            AssertAreEqual(actual, expected);
         }
 
         [TestMethod]
         public async Task Put_UpdatesItem()
         {
-            Mock<TService> service = new Mock<TService>();
-            TDto dto = CreateDto();
-            TInputDto input = CreateInput();
-            service.Setup(svs => svs.UpdateAsync(dto.Id, input)).ReturnsAsync(dto);
+            TEntity entity = CreateEntity();
+            TInputDto input = CreateInput(entity);
+            using ApplicationDbContext context = Factory.GetDbContext();
+            AddEntity(context, entity);
 
-            BaseApiController<TDto, TInputDto> controller = CreateController(service.Object);
+            string jsonBody = JsonSerializer.Serialize(input);
+            using StringContent stringContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
-            TDto? result = await controller.Put(dto.Id, input);
+            Uri url = new Uri($"{BaseUrl().OriginalString}/{entity.Id}");
+            HttpResponseMessage response = await Client.PutAsync(url, stringContent);
+            response.EnsureSuccessStatusCode();
+            string returnedJson = await response.Content.ReadAsStringAsync();
+            TDto actual = JsonSerializer.Deserialize<TDto>(returnedJson, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+            AssertAreEqual(actual, input);
 
-            Assert.AreEqual(dto, result);
         }
 
         [TestMethod]
         public async Task Post_InsertsItem()
         {
-            Mock<TService> service = new Mock<TService>();
-            TInputDto entity = CreateInput();
-            TInputDto actual = null!;
-            service.Setup(svs => svs.InsertAsync(entity))
-                    .Callback((TInputDto i) => actual = i);
-            BaseApiController<TDto, TInputDto> controller = CreateController(service.Object);
+            TInputDto input = CreateInput();
+            using ApplicationDbContext context = Factory.GetDbContext();
+            AddEntity(context, CreateEntity());
 
-            TDto? result = await controller.Post(entity);
+            string jsonBody = JsonSerializer.Serialize(input);
+            using StringContent stringContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
-            Assert.IsNotNull(actual);
-            Assert.AreEqual(entity, actual);
+
+            HttpResponseMessage response = await Client.PostAsync(BaseUrl(), stringContent);
+            response.EnsureSuccessStatusCode();
+            string returnedJson = await response.Content.ReadAsStringAsync();
+            TDto actual = JsonSerializer.Deserialize<TDto>(returnedJson, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+            AssertAreEqual(actual, input);
+
         }
 
         [TestMethod]
         public async Task Delete_WhenItemDoesNotExist_ReturnsNotFound()
         {
-            Mock<TService> service = new Mock<TService>();
-            service.Setup(svs => svs.DeleteAsync(1)).ReturnsAsync(false);
-            BaseApiController<TDto, TInputDto> controller = CreateController(service.Object);
-            
-
-            IActionResult result = await controller.Delete(1);
-
-            Assert.IsTrue(result is NotFoundResult);
+            Uri url = new Uri($"{BaseUrl().OriginalString}/1");
+            HttpResponseMessage response = await Client.DeleteAsync(url);
+            Assert.IsFalse(response.IsSuccessStatusCode);
         }
 
         [TestMethod]
         public async Task Delete_WhenItemExists_ReturnsOk()
         {
-            Mock<TService> service = new Mock<TService>();
-            int entityId = 1;
-            service.Setup(svs => svs.DeleteAsync(entityId)).ReturnsAsync(true);
-            BaseApiController<TDto, TInputDto> controller = CreateController(service.Object);
+            using ApplicationDbContext context = Factory.GetDbContext();
+            TEntity entity = CreateEntity();
+            AddEntity(context, entity);
+            Uri url = new Uri($"{BaseUrl().OriginalString}/{entity.Id}");
+            HttpResponseMessage response = await Client.DeleteAsync(url);
+            response.EnsureSuccessStatusCode();
 
-            IActionResult result = await controller.Delete(entityId);
-
-            Assert.IsTrue(result is OkResult);
         }
 
         private class ThrowingController : BaseApiController<TDto, TInputDto>
