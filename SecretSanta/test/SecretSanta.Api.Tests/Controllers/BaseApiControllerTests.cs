@@ -3,11 +3,15 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SecretSanta.Api.Controllers;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Castle.Core.Internal;
 using Moq;
 using SecretSanta.Business.Dto;
 using SecretSanta.Business.Services;
@@ -175,6 +179,22 @@ namespace SecretSanta.Api.Tests.Controllers
             HttpResponseMessage response = await Client.DeleteAsync(url);
             response.EnsureSuccessStatusCode();
 
+        }
+
+        [TestMethod]
+        public async Task Post_RequireFieldIsNull_Returns400()
+        {
+            var properties = typeof(TInputDto).GetProperties()
+                .Where(p => p.GetAttribute<RequiredAttribute>() != null);
+            foreach (var property in properties)
+            {
+                TInputDto input = CreateInput();
+                property.SetValue(input, null!);
+                string jsonBody = JsonSerializer.Serialize(input);
+                using StringContent stringContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+                HttpResponseMessage response = await Client.PostAsync(BaseUrl(), stringContent);
+                Assert.IsFalse(response.IsSuccessStatusCode);
+            }
         }
 
         private class ThrowingController : BaseApiController<TDto, TInputDto>

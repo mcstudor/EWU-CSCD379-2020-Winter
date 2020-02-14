@@ -2,7 +2,11 @@
 using SecretSanta.Api.Controllers;
 using SecretSanta.Business;
 using System;
+using System.Net.Http;
 using System.Reflection;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
 using SecretSanta.Business.Dto;
 using SecretSanta.Business.Services;
 using SecretSanta.Data;
@@ -75,6 +79,19 @@ namespace SecretSanta.Api.Tests.Controllers
 #pragma warning disable CA1062 // Validate arguments of public methods
             Assert.AreEqual(input.Title, entity.Title);
 #pragma warning restore CA1062 // Validate arguments of public methods
+        }
+
+        [TestMethod]
+        [DataRow(nameof(GroupInput.Title))]
+        public async Task Post_GroupInputRequired_Returns400(string property)
+        {
+            var input = CreateInput();
+            var prop = typeof(GroupInput).GetProperty(property);
+            prop?.SetValue(input, null!);
+            string jsonBody = JsonSerializer.Serialize(input);
+            using StringContent stringContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await Client.PostAsync(BaseUrl(), stringContent);
+            Assert.IsFalse(response.IsSuccessStatusCode);
         }
     }
 

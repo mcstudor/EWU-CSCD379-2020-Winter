@@ -2,6 +2,10 @@
 using SecretSanta.Api.Controllers;
 using SecretSanta.Business;
 using System;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
 using SecretSanta.Business.Dto;
 using SecretSanta.Business.Services;
 using SecretSanta.Data;
@@ -92,6 +96,22 @@ namespace SecretSanta.Api.Tests.Controllers
             Assert.AreEqual((input.Description, input.Url, input.Title, input.UserId),
                     (entity.Description, entity.Url, entity.Title, entity.UserId));
 #pragma warning restore CA1062 // Validate arguments of public methods
+        }
+
+        [TestMethod]
+        [DataRow(nameof(GiftInput.Description))]
+        [DataRow(nameof(GiftInput.Title))]
+        [DataRow(nameof(GiftInput.Url))]
+        [DataRow(nameof(GiftInput.UserId))]
+        public async Task Post_GiftInputRequired_Returns400(string property)
+        {
+            var input = CreateInput();
+            var prop = typeof(GiftInput).GetProperty(property);
+            prop?.SetValue(input, null!);
+            string jsonBody = JsonSerializer.Serialize(input);
+            using StringContent stringContent = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await Client.PostAsync(BaseUrl(), stringContent);
+            Assert.IsFalse(response.IsSuccessStatusCode);
         }
     }
 
