@@ -1,4 +1,9 @@
+
 # Assignment
+
+## Build Status
+
+[![Build Status](https://dev.azure.com/mcstudor/CSCD379-2020-Winter/_apis/build/status/mcstudor.EWU-CSCD379-2020-Winter?branchName=Assignment6)](https://dev.azure.com/mcstudor/CSCD379-2020-Winter/_build/latest?definitionId=1&branchName=Assignment6)
 
 For this assignment you will be adding CRUD functionality in the SecretSanta.Web application
 
