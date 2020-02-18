@@ -1,0 +1,39 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@ViewBag.Title</title>
+    <!-- Stylesheets -->
+    <% for (var filename in htmlWebpackPlugin.files.css) { %>
+    <link href="~<%= htmlWebpackPlugin.files.css[filename] %>" rel="stylesheet" />
+    <% } %>
+    <!-- End Stylesheets -->
+    <style>
+        input.input-validation-error {
+            border-color: red;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <nav>
+        <ul>
+            <li><a asp-controller="Home">Home</a></li>
+            <li><a asp-controller="User">User</a></li>
+            <li><a asp-controller="Gift">Gift</a></li>
+            <li><a asp-controller="Group">Group</a></li>
+        </ul>
+    </nav>
+</header>
+<div>
+    @RenderBody()
+</div>
+<!-- Scripts -->
+<% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+<script src="~<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+<% } %>
+<!-- End Scripts -->
+@RenderSection("scripts", required: false)
+</body>
+</html>

@@ -25,5 +25,10 @@ namespace SecretSanta.Web.Controllers
             ICollection<User> users = await Client.GetAllAsync();
             return View(users);
         }
+
+        public ActionResult Create()
+        {
+            return View();
+        }
     }
 }

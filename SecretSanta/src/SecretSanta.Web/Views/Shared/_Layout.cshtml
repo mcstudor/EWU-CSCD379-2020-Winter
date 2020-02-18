@@ -1,0 +1,39 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@ViewBag.Title</title>
+    <!-- Stylesheets -->
+
+    <link href="~/css/main.a70a57dfab0446eea732.css" rel="stylesheet" />
+
+    <!-- End Stylesheets -->
+    <style>
+        input.input-validation-error {
+            border-color: red;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <nav>
+        <ul>
+            <li><a asp-controller="Home">Home</a></li>
+            <li><a asp-controller="User">User</a></li>
+            <li><a asp-controller="Gift">Gift</a></li>
+            <li><a asp-controller="Group">Group</a></li>
+        </ul>
+    </nav>
+</header>
+<div>
+    @RenderBody()
+</div>
+<!-- Scripts -->
+
+<script src="~/js/main.a70a57dfab0446eea732.js"></script>
+
+<!-- End Scripts -->
+@RenderSection("scripts", required: false)
+</body>
+</html>
