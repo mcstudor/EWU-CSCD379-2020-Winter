@@ -1,3 +1,26 @@
 ﻿@charset "utf-8";
-
 @import "~bulma/bulma";
+$orange: rgba(222, 107, 72, 1);
+$blue: rgba(125, 187, 195, 1);
+$red: rgba(166, 58, 80, 1);
+
+.navbar {
+    background-color: $orange;
+    font-weight: bold;
+}
+.component-container {
+margin:auto;
+}
+
+a {
+    color: $blue;
+}
+
+.button {
+    font-weight: bold;
+}
+
+.button.delete-item{
+    background-color: $red;
+    
+}
