@@ -1,7 +1,7 @@
 ﻿<template>
     <div>
         <h2>Gifts</h2>
-        <button class="button is-secondary" @click="create()">Create New</button>
+        <button id="gift-create-btn" class="button is-secondary" @click="create()">Create New</button>
         <table class="table">
             <thead>
                 <tr>
@@ -14,10 +14,10 @@
             </thead>
             <tbody>
                 <tr v-for="gift in gifts" :key="gift.id">
-                    <td>{{gift.id}}</td>
-                    <td>{{gift.title}}</td>
-                    <td>{{gift.description}}</td>
-                    <td><a :href="gift.url" target="_blank">{{gift.url}}</a></td>
+                    <td id="gift-id">{{gift.id}}</td>
+                    <td id="gift-title">{{gift.title}}</td>
+                    <td id="gift-description">{{gift.description}}</td>
+                    <td id="gift-url"><a :href="gift.url" target="_blank">{{gift.url}}</a></td>
                     <td>
                         <button class="button is-primary" @click="edit(gift)">Edit</button>
                         <button class="button" @click="deleteGift(gift)">Delete</button>
