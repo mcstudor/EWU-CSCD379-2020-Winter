@@ -22,18 +22,20 @@ namespace SecretSanta.Web.Tests
         [NotNull]
         public IWebDriver Driver { get; set; }
 
-        private static string ApiUrl { get; } = "https://*:44388";
-        private static string WebUrl { get; } = "https://*:5001";
+        private static string ApiPort { get; } = "5000";
+        private static string WebPort { get; } = "5001";
+        private static string ApiUrl { get; } = $"https://localhost:{ApiPort}";
+        private static string WebUrl { get; } = $"https://localhost:{WebPort}";
         private static Process? ApiHostProcess {get; set; }
         private static Process? WebHostProcess {get; set; }
-        private static string AppURL { get; } = "https://localhost:5001/Gifts";
+        private static string AppURL { get; } = $"{WebUrl}/Gifts";
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext testContext)
         {
             
-            ApiHostProcess = Process.Start("/opt/hostedtoolcache/dotnet/dotnet.exe", "run -p ..\\..\\..\\..\\..\\src\\SecretSanta.Api\\SecretSanta.Api.csproj --environment \"Test\" --Urls " + ApiUrl);
-            WebHostProcess = Process.Start("/opt/hostedtoolcache/dotnet/dotnet.exe", "run -p ..\\..\\..\\..\\..\\src\\SecretSanta.Web\\SecretSanta.Web.csproj -- --Url " + WebUrl);
+            ApiHostProcess = Process.Start("dotnet.exe", $"run -p ..\\..\\..\\..\\..\\src\\SecretSanta.Api\\SecretSanta.Api.csproj --environment \"Test\" --Urls https://*:{ApiPort}");
+            WebHostProcess = Process.Start("dotnet.exe", $"run -p ..\\..\\..\\..\\..\\src\\SecretSanta.Web\\SecretSanta.Web.csproj -- --Url https://*:{WebPort}");
             ApiHostProcess.WaitForExit(5 * 1000);
         }
 
@@ -41,7 +43,7 @@ namespace SecretSanta.Web.Tests
         {
             using (HttpClient httpClient = new HttpClient())
             {
-                httpClient.BaseAddress = new Uri("https://localhost:44388");
+                httpClient.BaseAddress = new Uri(ApiUrl);
                 httpClient.DefaultRequestHeaders.Accept.Clear();
                             httpClient.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/json"));
@@ -74,14 +76,17 @@ namespace SecretSanta.Web.Tests
         [TestInitialize]
         public void TestInitialize()
         {
-
+            var driverLocation = Environment.GetEnvironmentVariable("ChromeWebDriver");
             string browser = "Chrome";
             switch (browser)
             {
                 case "Chrome":
                     var options = new ChromeOptions();
                     options.AddArgument("headless");
-                    Driver = new ChromeDriver(options);
+                    if(driverLocation == null)
+                        Driver = new ChromeDriver(options);
+                    else 
+                        Driver = new ChromeDriver(driverLocation, options);
                     break;
                 default:
                     Driver = new ChromeDriver();
