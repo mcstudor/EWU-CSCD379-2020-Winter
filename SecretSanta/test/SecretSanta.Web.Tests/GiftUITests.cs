@@ -32,8 +32,8 @@ namespace SecretSanta.Web.Tests
         public static void ClassInitialize(TestContext testContext)
         {
             
-            ApiHostProcess = Process.Start("dotnet.exe", "run  -p ..\\..\\..\\..\\..\\src\\SecretSanta.Api\\SecretSanta.Api.csproj --environment \"Test\" --Urls " + ApiUrl);
-            WebHostProcess = Process.Start("dotnet.exe", "run -p ..\\..\\..\\..\\..\\src\\SecretSanta.Web\\SecretSanta.Web.csproj -- --Url " + WebUrl);
+            ApiHostProcess = Process.Start("/opt/hostedtoolcache/dotnet/dotnet.exe", "run -p ..\\..\\..\\..\\..\\src\\SecretSanta.Api\\SecretSanta.Api.csproj --environment \"Test\" --Urls " + ApiUrl);
+            WebHostProcess = Process.Start("/opt/hostedtoolcache/dotnet/dotnet.exe", "run -p ..\\..\\..\\..\\..\\src\\SecretSanta.Web\\SecretSanta.Web.csproj -- --Url " + WebUrl);
             ApiHostProcess.WaitForExit(5 * 1000);
         }
 
@@ -79,7 +79,9 @@ namespace SecretSanta.Web.Tests
             switch (browser)
             {
                 case "Chrome":
-                    Driver = new ChromeDriver();
+                    var options = new ChromeOptions();
+                    options.AddArgument("headless");
+                    Driver = new ChromeDriver(options);
                     break;
                 default:
                     Driver = new ChromeDriver();
