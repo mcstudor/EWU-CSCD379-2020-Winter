@@ -32,8 +32,9 @@
     export default class UserDetailsComponent extends Vue {
         @Prop()
         user: User;
+        @Prop()
+        userClient: UserClient
         clonedUser: User = <User>{};
-
         constructor() {
             super();
         }
@@ -45,12 +46,11 @@
 
         @Emit('user-saved')
         async save() {
-            let userClient = new UserClient();
             if (this.clonedUser.id > 0) {
-                await userClient.put(this.clonedUser.id, this.clonedUser);
+                await this.userClient.put(this.clonedUser.id, this.clonedUser);
             }
             else {
-                await userClient.post(this.clonedUser);
+                await this.userClient.post(this.clonedUser);
             }
         }
 

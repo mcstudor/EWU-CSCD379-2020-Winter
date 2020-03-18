@@ -25,6 +25,7 @@
         </table>
         <user-details-component v-if="selectedUser != null"
                                 :user="selectedUser"
+                                :userClient="userClient"
                                 @user-saved="refresh()"></user-details-component>
     </div>
 </template>

@@ -27,6 +27,8 @@
         </table>
         <gift-details-component v-if="selectedGift != null"
                                  :gift="selectedGift"
+                                 :giftClient="giftClient"
+                                 :apiUrl="apiUrl"
                                  @gift-saved="refresh()"></gift-details-component>
     </div>
 </template>
@@ -45,9 +47,11 @@
         gifts: Gift[] = null;
         selectedGift: Gift = null;
         giftClient: GiftClient;
+        apiUrl: string;
 
         constructor() {
             super();
+            this.apiUrl = apiUrl;
             this.giftClient = new GiftClient(apiUrl);
         }
 

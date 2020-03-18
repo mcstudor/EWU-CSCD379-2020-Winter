@@ -26,6 +26,8 @@
     export default class GroupDetailsComponent extends Vue {
         @Prop()
         group: Group;
+        @Prop()
+        groupClient: GroupClient;
         clonedGroup: Group = <Group>{};
 
         constructor() {
@@ -39,12 +41,11 @@
 
         @Emit('group-saved')
         async save() {
-            let groupClient = new GroupClient();
             if (this.clonedGroup.id > 0) {
-                await groupClient.put(this.clonedGroup.id, this.clonedGroup);
+                await this.groupClient.put(this.clonedGroup.id, this.clonedGroup);
             }
             else {
-                await groupClient.post(this.clonedGroup);
+                await this.groupClient.post(this.clonedGroup);
             }
         }
 

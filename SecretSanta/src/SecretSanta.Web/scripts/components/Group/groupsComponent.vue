@@ -23,6 +23,7 @@
         </table>
         <group-details-component v-if="selectedGroup != null"
                                 :group="selectedGroup"
+                                :groupClient="groupClient"
                                 @group-saved="refresh()"></group-details-component>
     </div>
 </template>

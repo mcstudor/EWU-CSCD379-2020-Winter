@@ -49,6 +49,10 @@
     export default class GiftDetailsComponent extends Vue {
         @Prop()
         gift: Gift;
+        @Prop()
+        giftClient: GiftClient;
+        @Prop()
+        apiUrl: string;
         clonedGift: Gift = <Gift>{};
         users: User[] = null;
 
@@ -58,7 +62,7 @@
 
         async mounted() {
             // get list of users for dropdown
-            let userClient = new UserClient();
+            let userClient = new UserClient(this.apiUrl);
             this.users = await userClient.getAll();
             let tempGift = { ...this.gift };
             this.clonedGift = <Gift>tempGift;
@@ -66,12 +70,11 @@
 
         @Emit('gift-saved')
         async save() {
-            let giftClient = new GiftClient();
             if (this.clonedGift.id > 0) {
-                await giftClient.put(this.clonedGift.id, this.clonedGift);
+                await this.giftClient.put(this.clonedGift.id, this.clonedGift);
             }
             else {
-                await giftClient.post(this.clonedGift);
+                await this.giftClient.post(this.clonedGift);
             }
         }
 
